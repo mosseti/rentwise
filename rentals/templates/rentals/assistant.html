@@ -1,0 +1,46 @@
+{% extends 'rentals/base.html' %}
+{% block title %}Assistant · RentWise{% endblock %}
+{% block content %}
+<section class="assistant-page">
+  <div class="assistant-intro">
+    <p class="eyebrow">AI Rental Assistant</p>
+    <h1>Ask About Houses, Costs, And Rental Safety.</h1>
+    <p>The Assistant Is Open To Guests. It uses current RentWise listings as context, then answers with Gemini API when GEMINI_API_KEY is set. Without a key, it still uses the local RentWise database fallback.</p>
+    {% if not AI_PROVIDER_READY %}<p class="notice">Gemini API Is Not Connected Yet. Add GEMINI_API_KEY to .env and restart Django. Until then, the assistant uses the local RentWise database fallback.</p>{% endif %}
+  </div>
+  <div class="chat-shell" id="assistant-chat-shell">
+    <div class="chat-messages" id="assistant-chat-messages">
+      {% for m in chat_messages %}
+        <div class="bubble {{ m.role }}"><p>{{ m.content|linebreaksbr }}</p></div>
+      {% empty %}
+        <div class="bubble assistant"><p>Hi. Ask me things like: “Find A Bedsitter in Roysambu under 10000”, “Which unit has the lowest move-in cost?”, or “What should I check before paying deposit?”</p></div>
+      {% endfor %}
+      <div id="assistant-chat-bottom" aria-hidden="true"></div>
+    </div>
+    <form method="post" class="chat-form" id="assistant-chat-form">{% csrf_token %}<input name="message" id="assistant-chat-input" placeholder="Ask about an area, budget, unit type, or rental safety..." required><button class="btn primary">Send</button></form>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+  (function () {
+    function scrollAssistantToBottom() {
+      var messages = document.getElementById('assistant-chat-messages');
+      var bottom = document.getElementById('assistant-chat-bottom');
+      if (!messages) return;
+      messages.scrollTop = messages.scrollHeight;
+      if (bottom && bottom.scrollIntoView) {
+        bottom.scrollIntoView({ block: 'end' });
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      scrollAssistantToBottom();
+      window.setTimeout(scrollAssistantToBottom, 80);
+      window.setTimeout(scrollAssistantToBottom, 250);
+    });
+
+    window.addEventListener('load', scrollAssistantToBottom);
+  })();
+</script>
+{% endblock %}
